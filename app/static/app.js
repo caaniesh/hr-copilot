@@ -1,3 +1,38 @@
+function getApiBase() {
+  const meta = document.querySelector('meta[name="api-base"]');
+  const fromMeta = meta?.getAttribute("content")?.trim();
+  if (fromMeta) {
+    return fromMeta.replace(/\/$/, "");
+  }
+  if (typeof window !== "undefined" && window.API_BASE) {
+    return String(window.API_BASE).replace(/\/$/, "");
+  }
+  return "";
+}
+
+function apiUrl(path) {
+  const base = getApiBase();
+  const p = path.startsWith("/") ? path : `/${path}`;
+  return base ? `${base}${p}` : p;
+}
+
+async function parseJsonResponse(response) {
+  const text = await response.text();
+  if (!text) {
+    return {};
+  }
+  try {
+    return JSON.parse(text);
+  } catch {
+    const snippet = text.replace(/\s+/g, " ").trim().slice(0, 160);
+    throw new Error(
+      response.ok
+        ? `Server returned non-JSON: ${snippet}`
+        : `Request failed (${response.status}). ${snippet || response.statusText}`
+    );
+  }
+}
+
 const state = {
   view: "criteria",
   jobContext: {
@@ -335,17 +370,17 @@ async function analyzeResume() {
     const formData = new FormData();
     formData.append("file", state.selectedFile);
 
-    const uploadResponse = await fetch("/upload_resume", {
+    const uploadResponse = await fetch(apiUrl("/upload_resume"), {
       method: "POST",
       body: formData,
     });
-    const uploadResult = await uploadResponse.json();
+    const uploadResult = await parseJsonResponse(uploadResponse);
     if (!uploadResponse.ok) {
       throw new Error(uploadResult.detail || "Resume upload failed.");
     }
 
     elements.uploadAnalyzeBtn.textContent = "Analyzing...";
-    const analyzeResponse = await fetch("/analyze", {
+    const analyzeResponse = await fetch(apiUrl("/analyze"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -355,7 +390,7 @@ async function analyzeResume() {
       }),
     });
 
-    const analysisResult = await analyzeResponse.json();
+    const analysisResult = await parseJsonResponse(analyzeResponse);
     if (!analyzeResponse.ok) {
       throw new Error(analysisResult.detail || "Analysis failed.");
     }
@@ -381,7 +416,7 @@ function downloadCandidateReport() {
   if (!id) {
     return;
   }
-  window.location.href = `/export?candidate_id=${encodeURIComponent(id)}`;
+  window.location.href = apiUrl(`/export?candidate_id=${encodeURIComponent(id)}`);
 }
 
 function renderSummaryCardHtml(card) {
@@ -564,7 +599,7 @@ async function getInterviewSuggestion() {
     const typedCommand = (elements.interviewCommandInput?.value || "").trim();
     const command = typedCommand || elements.interviewAction.value;
 
-    const response = await fetch("/copilot", {
+    const response = await fetch(apiUrl("/copilot"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -575,7 +610,7 @@ async function getInterviewSuggestion() {
         current_question_index: state.interviewQuestionIndex,
       }),
     });
-    const result = await response.json();
+    const result = await parseJsonResponse(response);
     if (!response.ok) {
       throw new Error(result.detail || "Unable to get a copilot suggestion.");
     }
@@ -957,12 +992,12 @@ async function submitAssistantQuestion(question) {
 }
 
 async function requestAssistantReply(question) {
-  const response = await fetch("/assistant/chat", {
+  const response = await fetch(apiUrl("/assistant/chat"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(buildAssistantPayload(question)),
   });
-  const result = await response.json();
+  const result = await parseJsonResponse(response);
   if (!response.ok) {
     throw new Error(result.detail || result.answer || "The assistant request failed.");
   }

@@ -1,0 +1,19 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# Add a PostgreSQL instance in the dashboard, link DATABASE_URL to this web service.
+
+services:
+  - type: web
+    name: interview-copilot-api
+    runtime: python
+    plan: free
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: AI_PROVIDER
+        value: mock
+      - key: ASSISTANT_PROVIDER
+        value: mock

@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv/
+venv/
+env/
+
+# Local data (uploads, DB, exports, logs)
+app/data/uploads/
+app/data/exports/
+app/data/*.db
+app/data/*.db-journal
+app/data/*.log
+
+# Env
+.env
+.env.local
+
+# IDE
+.idea/
+.vscode/

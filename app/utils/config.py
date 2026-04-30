@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 
@@ -18,10 +18,20 @@ if not DB_PATH.is_absolute():
     DB_PATH = BASE_DIR / DB_PATH
 
 
+def _resolve_database_url() -> str:
+    """Render/Heroku Postgres URLs use postgres://; SQLAlchemy expects postgresql://."""
+    raw = os.getenv("DATABASE_URL", "").strip()
+    if not raw:
+        return f"sqlite:///{DB_PATH.as_posix()}"
+    if raw.startswith("postgres://"):
+        return raw.replace("postgres://", "postgresql://", 1)
+    return raw
+
+
 @dataclass(frozen=True)
 class Settings:
     app_name: str = "AI Technical Interview Copilot for HR"
-    database_url: str = os.getenv("DATABASE_URL", f"sqlite:///{DB_PATH.as_posix()}")
+    database_url: str = field(default_factory=_resolve_database_url)
     upload_dir: Path = UPLOAD_DIR
     export_dir: Path = EXPORT_DIR
     static_dir: Path = STATIC_DIR

@@ -76,6 +76,24 @@ Open the dashboard:
 http://127.0.0.1:8000/
 ```
 
+## Deploy (Render + static UI)
+
+**Backend (Render):** Connect this repo as a **Web Service**. Use `render.yaml` or set manually:
+
+- **Build:** `pip install -r requirements.txt`
+- **Start:** `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+- **Health check path:** `/health`
+- Create a **PostgreSQL** database on Render and **link** it so `DATABASE_URL` is set on the web service (the app normalizes `postgres://` to `postgresql://` and uses `psycopg2`).
+- Optional env: `AI_PROVIDER=mock`, `ASSISTANT_PROVIDER=mock` if you do not run Ollama on the server.
+
+**Frontend (e.g. Vercel static):** Deploy `app/static/` assets (or the whole repo with output to static). In `index.html`, set the API origin:
+
+```html
+<meta name="api-base" content="https://YOUR-SERVICE.onrender.com">
+```
+
+Leave `content` empty when the UI is served from the same host as the API. You can also set `window.API_BASE` before loading `app.js`.
+
 ## API endpoints
 
 - `POST /upload_resume`
