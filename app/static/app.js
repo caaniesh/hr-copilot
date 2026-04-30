@@ -1,4 +1,10 @@
 function getApiBase() {
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    if (host === "localhost" || host === "127.0.0.1") {
+      return "";
+    }
+  }
   const meta = document.querySelector('meta[name="api-base"]');
   const fromMeta = meta?.getAttribute("content")?.trim();
   if (fromMeta) {

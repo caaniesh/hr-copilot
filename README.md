@@ -89,10 +89,10 @@ http://127.0.0.1:8000/
 **Frontend (e.g. Vercel static):** Deploy `app/static/` assets (or the whole repo with output to static). In `index.html`, set the API origin:
 
 ```html
-<meta name="api-base" content="https://YOUR-SERVICE.onrender.com">
+<meta name="api-base" content="https://hr-copilot-4b8w.onrender.com">
 ```
 
-Leave `content` empty when the UI is served from the same host as the API. You can also set `window.API_BASE` before loading `app.js`.
+The bundled `index.html` already sets this for production. On `localhost` / `127.0.0.1`, the client ignores the meta tag and calls the same origin (local `uvicorn`). You can override with `window.API_BASE` before loading `app.js`.
 
 ## API endpoints
 

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Static hosting (e.g. Vercel): set your Render API origin, no trailing slash. Leave empty when UI and API share the same host. -->
-  <meta name="api-base" content="">
+  <!-- Production API (Vercel static UI). Localhost ignores this and uses same-origin (local uvicorn). -->
+  <meta name="api-base" content="https://hr-copilot-4b8w.onrender.com">
   <title>AI Technical Interview Copilot</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
