@@ -86,13 +86,13 @@ http://127.0.0.1:8000/
 - Create a **PostgreSQL** database on Render and **link** it so `DATABASE_URL` is set on the web service (the app normalizes `postgres://` to `postgresql://` and uses `psycopg2`).
 - Optional env: `AI_PROVIDER=mock`, `ASSISTANT_PROVIDER=mock` if you do not run Ollama on the server.
 
-**Frontend (e.g. Vercel static):** Deploy `app/static/` assets (or the whole repo with output to static). In `index.html`, set the API origin:
+**Frontend (Vercel):** This repo includes **`vercel.json`** + **`npm run build`**, which copies `app/static/` into **`public/`** with the same URL layout as FastAPI (`/` + `/static/*`). That avoids Vercel treating the Python `requirements.txt` as a serverless app (which causes **500 / FUNCTION_INVOCATION_FAILED**).
 
-```html
-<meta name="api-base" content="https://hr-copilot-4b8w.onrender.com">
-```
+- Connect the **same Git repo**; use the **project root** (no custom “Python” framework preset needed).
+- Vercel will run `npm install` + `npm run build` and publish **`public/`** only.
+- The API base is already set in `app/static/index.html` (`api-base` meta → your Render URL). On `localhost` / `127.0.0.1`, the client ignores that meta and uses same-origin `uvicorn`.
 
-The bundled `index.html` already sets this for production. On `localhost` / `127.0.0.1`, the client ignores the meta tag and calls the same origin (local `uvicorn`). You can override with `window.API_BASE` before loading `app.js`.
+Override at runtime with `window.API_BASE` before loading `app.js` if needed.
 
 ## API endpoints
 

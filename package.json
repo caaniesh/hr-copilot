@@ -1,0 +1,8 @@
+{
+  "name": "hr-copilot-static",
+  "private": true,
+  "description": "Vercel static UI; API runs on Render. Build copies app/static → public/",
+  "scripts": {
+    "build": "node build-static.cjs"
+  }
+}

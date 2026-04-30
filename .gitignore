@@ -21,3 +21,6 @@ app/data/*.log
 # IDE
 .idea/
 .vscode/
+
+# Vercel build output (generated on deploy)
+public/
