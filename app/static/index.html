@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Technical Interview Copilot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-left" id="topbarLeft"></div>
+      <div class="topbar-actions" id="topbarActions"></div>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <section class="view view-active" id="view-criteria">
+      <div class="center-shell center-shell-narrow">
+        <div class="hero-surface">
+          <div class="hero-grid">
+            <div>
+              <p class="hero-eyebrow">Enterprise AI HR Agent</p>
+              <h1>Define a <span class="highlight-red">smarter</span> hiring workflow for <span class="highlight-red">AI-powered</span> screening.</h1>
+              <p>Set up the job requirements, launch resume intelligence, and move from screening to interview copilot in a single premium workflow.</p>
+              <div class="hero-chip-row">
+                <span class="hero-chip">Explainable scoring</span>
+                <span class="hero-chip">Live interview agent</span>
+                <span class="hero-chip">Export-ready reports</span>
+              </div>
+            </div>
+            <div class="hero-stat-stack">
+              <div class="hero-stat-card">
+                <span>AI Analysis</span>
+                <strong>Resume to score</strong>
+              </div>
+              <div class="hero-stat-card">
+                <span>Interview Agent</span>
+                <strong>Live copilot guidance</strong>
+              </div>
+              <div class="hero-stat-card">
+                <span>Decision Support</span>
+                <strong>Explainable scoring</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <form class="surface-card criteria-card" id="criteriaForm">
+          <label class="field-group">
+            <span class="field-label">
+              <span class="label-icon label-icon-target"></span>
+              <span>Job Role *</span>
+            </span>
+            <input type="text" id="role" placeholder="e.g., Senior Backend Developer" required>
+          </label>
+
+          <label class="field-group">
+            <span class="field-label">
+              <span class="label-icon label-icon-level"></span>
+              <span>Experience Level</span>
+            </span>
+            <select id="experienceLevel">
+              <option value="Experienced">Experienced</option>
+              <option value="Fresher">Fresher</option>
+            </select>
+          </label>
+
+          <label class="field-group">
+            <span class="field-label field-label-with-note">
+              <span>
+                Required Skills *
+              </span>
+              <span class="field-note">(comma-separated)</span>
+            </span>
+            <input type="text" id="requiredSkills" placeholder="e.g., Python, FastAPI, PostgreSQL, Docker" required>
+          </label>
+
+          <button type="submit" class="btn btn-primary btn-block">Continue to Resume Upload</button>
+        </form>
+
+        <p class="view-message" id="criteriaMessage"></p>
+      </div>
+    </section>
+
+    <section class="view" id="view-upload">
+      <div class="center-shell center-shell-medium">
+        <div class="hero-surface hero-surface-compact">
+          <div class="hero-grid hero-grid-compact">
+            <div>
+              <p class="hero-eyebrow">Resume Intelligence</p>
+              <h1>Upload the <span class="highlight-red">candidate resume</span> and let the agent begin.</h1>
+              <p>Supports PDF and DOCX formats. The AI layer will extract evidence, score role fit, and prepare interview-ready guidance.</p>
+              <div class="hero-chip-row">
+                <span class="hero-chip">PDF and DOCX</span>
+                <span class="hero-chip">Evidence-based parsing</span>
+                <span class="hero-chip">Interview-ready outputs</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="upload-dropzone" id="dropZone">
+          <input type="file" id="resumeFile" accept=".pdf,.doc,.docx,.txt" hidden>
+
+          <div class="upload-state" id="uploadEmptyState">
+            <div class="state-icon upload-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 16V6"></path>
+                <path d="M8.5 9.5 12 6l3.5 3.5"></path>
+                <path d="M6 15v2a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-2"></path>
+              </svg>
+            </div>
+            <h2>Drop resume here or click to browse</h2>
+            <p>PDF or DOCX files only</p>
+            <button type="button" class="btn btn-outline" id="browseBtn">Browse Files</button>
+          </div>
+
+          <div class="upload-state upload-state-selected" id="uploadSelectedState">
+            <div class="state-icon success-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20 7 10.5 16.5 6 12"></path>
+              </svg>
+            </div>
+
+            <div class="selected-file-row">
+              <span class="file-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M8 3h6l4 4v14H8z"></path>
+                  <path d="M14 3v5h5"></path>
+                  <path d="M10 12h4"></path>
+                  <path d="M10 16h5"></path>
+                </svg>
+              </span>
+              <span id="selectedFileName">No file selected</span>
+            </div>
+
+            <div class="selected-actions">
+              <button type="button" class="btn btn-outline" id="changeFileBtn">Change File</button>
+              <button type="button" class="btn btn-primary" id="uploadAnalyzeBtn">Upload &amp; Analyze</button>
+            </div>
+          </div>
+        </div>
+
+        <p class="view-message" id="uploadMessage"></p>
+      </div>
+    </section>
+
+    <section class="view" id="view-analysis">
+      <div class="analysis-shell">
+        <div id="roleMismatchBanner" class="role-mismatch-banner" hidden></div>
+        <div class="analysis-overview">
+          <article class="surface-card candidate-card">
+            <div class="candidate-avatar">
+              <svg viewBox="0 0 48 48" aria-hidden="true">
+                <circle cx="24" cy="18" r="7"></circle>
+                <path d="M12 39c2.6-6 7.2-9 12-9s9.4 3 12 9"></path>
+              </svg>
+            </div>
+            <h2 id="candidateName">Candidate Name</h2>
+            <p class="candidate-level" id="candidateLevel">Experience Level</p>
+
+            <div class="candidate-divider"></div>
+
+            <div class="candidate-contact-list" id="candidateContactList">
+              <div class="contact-item"><span class="contact-icon">&#9993;</span><span>Not available</span></div>
+              <div class="contact-item"><span class="contact-icon">&#9742;</span><span>Not available</span></div>
+              <div class="contact-item"><span class="contact-icon">&#9679;</span><span>Not available</span></div>
+            </div>
+          </article>
+
+          <article class="surface-card score-card">
+            <div class="score-header">
+              <h2>Overall Score</h2>
+              <div class="overall-score" id="overallScore">--/100</div>
+            </div>
+
+            <div id="summaryCardRow" class="summary-card-row" aria-label="Fit summary"></div>
+            <p class="confidence-strip" id="confidenceStrip"></p>
+
+            <div class="score-metric">
+              <div class="score-metric-head">
+                <span>Skill Match</span>
+                <span id="skillPointsLabel">--</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" id="skillPointsBar"></div>
+              </div>
+            </div>
+
+            <div class="score-metric">
+              <div class="score-metric-head">
+                <span>Experience</span>
+                <span id="experiencePointsLabel">--</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" id="experiencePointsBar"></div>
+              </div>
+            </div>
+
+            <div class="score-metric">
+              <div class="score-metric-head">
+                <span>Project Relevance</span>
+                <span id="projectPointsLabel">--</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" id="projectPointsBar"></div>
+              </div>
+            </div>
+
+            <div class="recommendation-row">
+              <span>Final Recommendation</span>
+              <span class="recommendation-badge" id="recommendationBadge">--</span>
+            </div>
+            <div id="recommendationDetailBlock" class="recommendation-detail"></div>
+            <section id="whyScoreBlock" class="why-score-block" aria-labelledby="whyScoreHeading"></section>
+            <button type="button" class="btn btn-outline btn-block download-report-btn" id="downloadReportBtn">
+              Download Report
+            </button>
+          </article>
+        </div>
+
+        <div class="analysis-tabs" id="analysisTabs">
+          <button type="button" class="analysis-tab active" data-tab="insights">AI Insights</button>
+          <button type="button" class="analysis-tab" data-tab="skills">Skills</button>
+          <button type="button" class="analysis-tab" data-tab="questions">Interview Questions</button>
+          <button type="button" class="analysis-tab" data-tab="projects">Projects</button>
+        </div>
+
+        <div class="analysis-panel active" id="tab-insights"></div>
+        <div class="analysis-panel" id="tab-skills"></div>
+        <div class="analysis-panel" id="tab-questions"></div>
+        <div class="analysis-panel" id="tab-projects"></div>
+
+        <p class="view-message view-message-analysis" id="analysisMessage"></p>
+      </div>
+    </section>
+
+    <section class="view" id="view-interview">
+      <div class="analysis-shell interview-shell">
+        <div class="interview-grid">
+          <section class="surface-card interview-card">
+            <div class="interview-card-header">
+              <span class="interview-card-icon interview-card-icon-blue">&#128172;</span>
+              <div>
+                <h2>Real-Time Assistance</h2>
+                <p>Get AI-powered interview suggestions</p>
+              </div>
+            </div>
+
+            <label class="interview-field">
+              <span>Interview Context</span>
+              <textarea id="interviewContext" rows="5" placeholder="Describe what's happening in the interview... (e.g., 'Candidate answered the React question well, need to probe deeper on state management')"></textarea>
+            </label>
+
+            <label class="interview-field">
+              <span>HR command (optional)</span>
+              <input type="text" id="interviewCommandInput" class="interview-command-input" placeholder="e.g. next question, make easier, make harder, candidate struggling" autocomplete="off">
+            </label>
+
+            <label class="interview-field">
+              <span>Quick action</span>
+              <select id="interviewAction">
+                <option value="next question">Suggest Next Question</option>
+                <option value="make easier">Make It Easier</option>
+                <option value="make harder">Make It Harder</option>
+                <option value="candidate struggling">Candidate Is Struggling</option>
+              </select>
+            </label>
+
+            <button type="button" class="btn btn-primary btn-block" id="getSuggestionBtn">Get Suggestion</button>
+
+            <div class="copilot-suggestion-box" id="copilotSuggestionBox">
+              <h3>Agent Conversation</h3>
+              <div class="agent-thread">
+                <div class="chat-bubble chat-bubble-user" id="copilotUserBubble">Your interview context will appear here.</div>
+                <div class="chat-bubble chat-bubble-ai">
+                  <p id="copilotSuggestedQuestion">Suggestion will appear here after you request it.</p>
+                  <p class="copilot-suggestion-meta"><strong>Expected direction:</strong> <span id="copilotExpectedDirection">---</span></p>
+                  <p class="copilot-suggestion-meta"><strong>Difficulty:</strong> <span id="copilotDifficulty">---</span></p>
+                  <p class="copilot-suggestion-meta"><strong>Reason:</strong> <span id="copilotReason">---</span></p>
+                  <p class="copilot-suggestion-meta"><strong>Coaching note:</strong> <span id="copilotCoachingNote">---</span></p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="surface-card interview-card">
+            <div class="interview-card-header">
+              <span class="interview-card-icon interview-card-icon-green">&#128161;</span>
+              <div>
+                <h2>Quick Reference</h2>
+                <p>Candidate key insights</p>
+              </div>
+            </div>
+
+            <div class="reference-section">
+              <h3>Top Strengths</h3>
+              <ul id="interviewStrengthsList"></ul>
+            </div>
+
+            <div class="reference-section reference-section-divider">
+              <h3 class="reference-title-warning">Areas to Probe</h3>
+              <ul id="interviewWeaknessesList"></ul>
+            </div>
+
+            <div class="reference-section reference-section-divider">
+              <h3>Primary Skills</h3>
+              <div class="skill-chip-group" id="interviewPrimarySkills"></div>
+            </div>
+          </section>
+        </div>
+
+        <section class="surface-card coding-section">
+          <div class="interview-card-header">
+            <span class="interview-card-icon interview-card-icon-purple">&#10094;&#10095;</span>
+            <div>
+              <h2>Coding Test</h2>
+              <p>Generate and evaluate coding questions</p>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-outline" id="generateCodingBtn">Generate Coding Question</button>
+
+          <div class="coding-question-stack" id="codingQuestionStack"></div>
+        </section>
+
+        <section class="surface-card prepared-questions-card">
+          <h2>Prepared Interview Questions</h2>
+          <div class="prepared-question-list" id="preparedQuestionList"></div>
+        </section>
+
+        <p class="view-message view-message-analysis" id="interviewMessage"></p>
+      </div>
+    </section>
+  </main>
+
+  <div class="assistant-widget" id="assistantWidget" aria-label="AI Assistant chat">
+    <div class="assistant-widget-header">
+      <div class="assistant-header-copy">
+        <h3>AI Assistant</h3>
+        <p id="assistantContextLine">Ask about the current screen, candidate results, or next steps.</p>
+      </div>
+      <button type="button" class="assistant-close" id="assistantCloseBtn" aria-label="Close AI Assistant">&times;</button>
+    </div>
+
+    <div class="assistant-quick-actions" id="assistantQuickActions"></div>
+    <div class="assistant-thread" id="assistantThread"></div>
+
+    <form class="assistant-form" id="assistantForm">
+      <input
+        type="text"
+        id="assistantInput"
+        placeholder="Ask about the score, skills, interview, or next step"
+        autocomplete="off"
+      >
+      <button type="submit" class="assistant-send-btn" id="assistantSendBtn">Send</button>
+    </form>
+  </div>
+
+  <button type="button" class="chat-fab" id="chatFab" aria-label="Open AI Assistant" aria-expanded="false">
+    <span class="chat-fab-icon">&#128172;</span>
+    <span class="visually-hidden">AI Assistant</span>
+  </button>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
