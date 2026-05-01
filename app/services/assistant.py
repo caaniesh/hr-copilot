@@ -5,24 +5,45 @@ import urllib.error
 import urllib.request
 
 from app.models.schemas import AssistantChatRequest, AssistantChatResponse
+from app.services.assistant_deterministic import deterministic_reply
 from app.utils.config import settings
 
 
 class AssistantChatService:
-    """Context-grounded assistant backed by Ollama chat completions."""
+    """Chat assistant: Ollama (local), or context-only answers for cloud deploy without Ollama."""
 
     def answer(self, request: AssistantChatRequest) -> AssistantChatResponse:
-        if settings.assistant_provider.casefold() != "ollama":
-            warning = (
-                f"Assistant provider '{settings.assistant_provider}' is not supported for chat. "
-                "Set ASSISTANT_PROVIDER=ollama to enable the conversational assistant."
-            )
-            return AssistantChatResponse(
-                answer=warning,
-                model=settings.ollama_model,
-                warning=warning,
+        provider = settings.assistant_provider.casefold()
+
+        if provider in {"context", "deterministic", "builtin", "mock"}:
+            return deterministic_reply(
+                question=request.question,
+                view=request.view,
+                active_tab=request.active_tab,
+                job_context=request.job_context,
+                analysis=request.analysis,
+                history=request.history,
             )
 
+        if provider == "auto":
+            ollama_resp = self._ollama_answer(request)
+            if ollama_resp.warning and (
+                "Could not reach Ollama" in (ollama_resp.warning or "")
+                or "No Ollama model was available" in (ollama_resp.warning or "")
+            ):
+                return deterministic_reply(
+                    question=request.question,
+                    view=request.view,
+                    active_tab=request.active_tab,
+                    job_context=request.job_context,
+                    analysis=request.analysis,
+                    history=request.history,
+                )
+            return ollama_resp
+
+        return self._ollama_answer(request)
+
+    def _ollama_answer(self, request: AssistantChatRequest) -> AssistantChatResponse:
         messages = self._build_messages(request)
         attempted_models: list[str] = []
         warnings: list[str] = []
@@ -40,6 +61,7 @@ class AssistantChatService:
                 return AssistantChatResponse(
                     answer=answer,
                     model=parsed.get("model") or model_name,
+                    provider="ollama",
                     warning=" ".join(warnings) if warnings else None,
                 )
             if warning:
@@ -50,6 +72,7 @@ class AssistantChatService:
         return AssistantChatResponse(
             answer=self._assistant_unavailable_message(combined_warning),
             model=configured_model,
+            provider="ollama",
             warning=combined_warning,
         )
 

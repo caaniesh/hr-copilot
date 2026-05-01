@@ -16,4 +16,4 @@ services:
       - key: AI_PROVIDER
         value: mock
       - key: ASSISTANT_PROVIDER
-        value: mock
+        value: context

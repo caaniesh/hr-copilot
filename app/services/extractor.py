@@ -16,6 +16,16 @@ from app.utils.text import (
     summarize_text,
 )
 
+PROJECT_SECTION_HEADERS = [
+    "projects",
+    "project experience",
+    "key projects",
+    "academic projects",
+    "personal projects",
+    "notable projects",
+    "selected projects",
+]
+
 
 class ResumeExtractionService:
     """Extracts structured candidate data without inventing missing values."""
@@ -118,25 +128,22 @@ class ResumeExtractionService:
         return deduplicate_preserve_order(section_skills + text_matches)
 
     def _extract_projects(self, text: str, skills: list[str]) -> list[ProjectInfo]:
-        section = extract_section(text, ["projects", "project experience"])
+        section = extract_section(text, PROJECT_SECTION_HEADERS)
         projects: list[ProjectInfo] = []
         raw_entries: list[str] = []
 
         if section:
-            raw_entries = [
-                entry.strip(" -*\n")
-                for entry in re.split(r"\n\s*\n|^\s*[-*]\s+|^\s*\d+\.\s+", section, flags=re.MULTILINE)
-                if entry.strip()
-            ]
+            raw_entries = self._split_project_entries(section)
         else:
             fallback_lines = [
                 line.strip()
                 for line in text.splitlines()
                 if "project" in line.casefold() and len(line.split()) > 5
             ]
-            raw_entries = fallback_lines[:5]
+            raw_entries = fallback_lines[:15]
 
-        for index, entry in enumerate(raw_entries[:5], start=1):
+        max_projects = 25
+        for index, entry in enumerate(raw_entries[:max_projects], start=1):
             lines = [line.strip(" -*") for line in entry.splitlines() if line.strip()]
             content = normalize_whitespace(" ".join(lines))
             if not content:
@@ -155,6 +162,112 @@ class ResumeExtractionService:
                 )
             )
         return projects
+
+    def _split_project_entries(self, section: str) -> list[str]:
+        """Split the projects section into separate items (paragraphs, bullets, numbered lists, titles)."""
+        section = normalize_whitespace(section)
+        if not section:
+            return []
+
+        # 1) Paragraph breaks (blank lines between projects)
+        paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", section) if p.strip()]
+        if len(paragraphs) > 1:
+            merged: list[str] = []
+            for p in paragraphs:
+                merged.extend(self._split_bullet_only_block(p))
+            if len(merged) > 1:
+                return merged
+
+        # 2) Line-leading bullets or numbered items (same paragraph)
+        bullet_split = self._split_by_line_bullets(section)
+        if len(bullet_split) > 1:
+            return bullet_split
+
+        # 3) Numbered lines "1." "2)" at column 0
+        numbered = self._split_by_numbered_lines(section)
+        if len(numbered) > 1:
+            return numbered
+
+        # 4) Dense CV blocks: isolated title lines before body text
+        titled = self._split_by_title_lines(section)
+        if len(titled) > 1:
+            return titled
+
+        # 5) Legacy fallback: regex split (weak on single blobs)
+        legacy = [
+            entry.strip(" -*\n")
+            for entry in re.split(r"\n\s*\n|^\s*[-*]\s+|^\s*\d+\.\s+", section, flags=re.MULTILINE)
+            if entry.strip()
+        ]
+        return legacy if legacy else [section]
+
+    def _split_bullet_only_block(self, paragraph: str) -> list[str]:
+        bs = self._split_by_line_bullets(paragraph)
+        return bs if len(bs) > 1 else [paragraph]
+
+    def _split_by_line_bullets(self, section: str) -> list[str]:
+        lines = section.splitlines()
+        bullet_re = re.compile(r"^\s*(?:[\u2022\-*•◦▪]|\d+[\.)])\s+")
+        chunks: list[str] = []
+        buf: list[str] = []
+
+        for raw in lines:
+            if bullet_re.match(raw):
+                if buf:
+                    chunks.append(normalize_whitespace("\n".join(buf)))
+                stripped = bullet_re.sub("", raw.strip(), count=1).strip()
+                buf = [stripped] if stripped else []
+            else:
+                if raw.strip():
+                    buf.append(raw.strip())
+
+        if buf:
+            chunks.append(normalize_whitespace("\n".join(buf)))
+
+        return chunks if len(chunks) > 1 else [section]
+
+    def _split_by_numbered_lines(self, section: str) -> list[str]:
+        """Split on lines like '1. Title' or '2) Title' at start of line."""
+        line_starts_item = re.compile(r"^\s*\d+[\.)]\s+\S")
+        lines = section.splitlines()
+        chunks: list[str] = []
+        buf: list[str] = []
+
+        for raw in lines:
+            if line_starts_item.match(raw) and buf:
+                chunks.append(normalize_whitespace("\n".join(buf)))
+                buf = [raw.strip()]
+            elif raw.strip():
+                buf.append(raw.strip())
+
+        if buf:
+            chunks.append(normalize_whitespace("\n".join(buf)))
+
+        return chunks if len(chunks) > 1 else [section]
+
+    def _split_by_title_lines(self, section: str) -> list[str]:
+        """Split when a short standalone line looks like a project title before description."""
+        lines = [ln.strip() for ln in section.splitlines() if ln.strip()]
+        if len(lines) < 4:
+            return [section]
+
+        title_pattern = re.compile(r"^[A-Z][^.!?\n]{4,100}$")
+        blocks: list[list[str]] = []
+        buf: list[str] = []
+
+        for line in lines:
+            if buf and title_pattern.match(line) and len(normalize_whitespace(" ".join(buf))) > 50:
+                blocks.append(buf)
+                buf = [line]
+            else:
+                buf.append(line)
+
+        if buf:
+            blocks.append(buf)
+
+        entries = [normalize_whitespace("\n".join(b)) for b in blocks]
+        cleaned = [e for e in entries if len(e) > 15]
+        return cleaned if len(cleaned) > 1 else [section]
 
     def _split_project_title_summary(
         self,

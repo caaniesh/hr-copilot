@@ -161,9 +161,9 @@ class AIInsightService:
         if not profile.projects:
             return []
 
+        max_questions = 15
         primary_skills = [skill.name for skill in skill_analysis.primary_skills]
         questions: list[InterviewQuestion] = []
-        template_index = 0
 
         for project in profile.projects:
             focus_skill = project.technologies[0] if project.technologies else (primary_skills[0] if primary_skills else "the stack")
@@ -189,6 +189,8 @@ class AIInsightService:
                 ),
             ]
             for question, difficulty, expected_answer, why in templates:
+                if len(questions) >= max_questions:
+                    return questions
                 questions.append(
                     InterviewQuestion(
                         question=question,
@@ -198,11 +200,8 @@ class AIInsightService:
                         project_name=project.title,
                     )
                 )
-                template_index += 1
-                if template_index >= 5:
-                    return questions[:5]
 
-        while len(questions) < 5:
+        while len(questions) < min(5, max_questions):
             project = profile.projects[-1]
             summary_snippet = summarize_text(project.summary, max_words=14)
             questions.append(
@@ -216,7 +215,7 @@ class AIInsightService:
                     project_name=project.title,
                 )
             )
-        return questions[:5]
+        return questions[:max_questions]
 
     def _fill_unique(self, items: list[str], fallbacks: list[str], target_size: int) -> list[str]:
         unique: list[str] = []

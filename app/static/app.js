@@ -950,7 +950,7 @@ function renderAssistant() {
   const loadingMarkup = state.assistantLoading
     ? `
       <div class="assistant-message-row assistant">
-        <div class="chat-bubble chat-bubble-ai">Thinking with Ollama...</div>
+        <div class="chat-bubble chat-bubble-ai">Thinking...</div>
       </div>
     `
     : "";
@@ -988,7 +988,7 @@ async function submitAssistantQuestion(question) {
   } catch (error) {
     pushAssistantMessage(
       "assistant",
-      `I couldn't get a response from the Ollama assistant. ${error.message}`
+      `I couldn't get a response from the assistant. ${error.message}`
     );
   } finally {
     state.assistantLoading = false;

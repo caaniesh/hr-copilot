@@ -84,7 +84,7 @@ http://127.0.0.1:8000/
 - **Start:** `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 - **Health check path:** `/health`
 - Create a **PostgreSQL** database on Render and **link** it so `DATABASE_URL` is set on the web service (the app normalizes `postgres://` to `postgresql://` and uses `psycopg2`).
-- Optional env: `AI_PROVIDER=mock`, `ASSISTANT_PROVIDER=mock` if you do not run Ollama on the server.
+- Optional env: `AI_PROVIDER=mock`. For chat without Ollama on the server, set **`ASSISTANT_PROVIDER=context`** (rule-based answers from the loaded analysis). Use **`ASSISTANT_PROVIDER=ollama`** only when Ollama is reachable at `OLLAMA_BASE_URL`. **`ASSISTANT_PROVIDER=auto`** tries Ollama first, then falls back to context if Ollama is unreachable.
 
 **Frontend (Vercel):** This repo includes **`vercel.json`** + **`npm run build`**, which copies `app/static/` into **`public/`** with the same URL layout as FastAPI (`/` + `/static/*`). That avoids Vercel treating the Python `requirements.txt` as a serverless app (which causes **500 / FUNCTION_INVOCATION_FAILED**).
 
