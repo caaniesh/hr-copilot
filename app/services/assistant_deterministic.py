@@ -17,8 +17,9 @@ def deterministic_reply(
     active_tab: str | None,
     job_context: JobContext | None,
     analysis: AnalyzeResponse | None,
-    _history: list[AssistantChatMessage],
+    history: list[AssistantChatMessage],
 ) -> AssistantChatResponse:
+    _ = history  # reserved for richer multi-turn replies later
     q = question.strip()
     normalized = q.casefold()
 
